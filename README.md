@@ -2,7 +2,14 @@
 
 ZenNine is a Sudoku platform focused on advanced solving workflows, variant support, rich import paths, and replay/statistics.
 
-This repository is currently documentation-first. Use this README as the main entry point.
+This repository now includes initial implementation scaffolding plus planning/specification docs.
+
+## App Layout
+
+- apps/web/
+  - React + TypeScript + Vite frontend scaffold.
+- apps/api/
+  - FastAPI backend scaffold.
 
 ## Structure
 
@@ -33,13 +40,38 @@ This repository is currently documentation-first. Use this README as the main en
 - Product, architecture, and format specs are drafted.
 - Event model includes lane-aware candidate actions and multi-select batch actions.
 - Example SPN files and event payload examples are included.
+- Frontend and backend scaffolding are in place.
+
+## Quick Start
+
+### Run from repo root (recommended)
+
+npm run web:dev
+
+Optional:
+- npm run web:build
+- npm run api:run
+
+### Frontend
+
+cd apps/web
+npm install
+npm run dev
+
+### Backend
+
+cd apps/api
+python -m venv .venv
+.venv\\Scripts\\activate
+pip install -r requirements.txt
+uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 
 ## Top Priorities
 
-1. Create initial project scaffolding (frontend and backend workspaces).
-2. Implement SPN import/export parser with round-trip tests.
-3. Implement event model validation and replay-safe event append flow.
-4. Build first playable board loop (digit, candidates, undo/redo, conflict toggle).
+1. Implement SPN import/export parser with round-trip tests.
+2. Implement event model validation and replay-safe event append flow.
+3. Build first playable board loop (digit, candidates, undo/redo, conflict toggle).
+4. Wire frontend and backend via initial API contracts.
 5. Add timeline playback MVP (scrub and step controls).
 
 ## Notes
