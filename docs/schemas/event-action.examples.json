@@ -1,0 +1,103 @@
+{
+  "description": "Examples that conform to event-action.schema.json",
+  "examples": [
+    {
+      "name": "single toggle center candidate",
+      "event": {
+        "actionType": "toggle_candidate",
+        "payload": {
+          "cell": "r4c7",
+          "lane": "center",
+          "value": "6"
+        }
+      }
+    },
+    {
+      "name": "single set side candidates",
+      "event": {
+        "actionType": "set_candidates",
+        "payload": {
+          "cell": "r4c7",
+          "lane": "side",
+          "values": ["1", "4", "9"]
+        }
+      }
+    },
+    {
+      "name": "batch toggle center candidate across selection",
+      "event": {
+        "actionType": "apply_to_selection",
+        "payload": {
+          "targetCells": ["r2c1", "r2c2", "r2c4"],
+          "op": "toggle_candidate",
+          "opArgs": {
+            "lane": "center",
+            "value": "6"
+          },
+          "selectionSource": "drag"
+        }
+      }
+    },
+    {
+      "name": "batch set side candidates across selection",
+      "event": {
+        "actionType": "apply_to_selection",
+        "payload": {
+          "targetCells": ["r7c4", "r7c5", "r7c6"],
+          "op": "set_candidates",
+          "opArgs": {
+            "lane": "side",
+            "values": ["2", "8"]
+          },
+          "selectionSource": "box"
+        }
+      }
+    },
+    {
+      "name": "batch place digit",
+      "event": {
+        "actionType": "apply_to_selection",
+        "payload": {
+          "targetCells": ["r1c1", "r1c2"],
+          "op": "set_digit",
+          "opArgs": {
+            "value": "5"
+          },
+          "selectionSource": "row"
+        }
+      }
+    },
+    {
+      "name": "batch clear digit",
+      "event": {
+        "actionType": "apply_to_selection",
+        "payload": {
+          "targetCells": ["r3c3", "r3c4"],
+          "op": "clear_digit",
+          "opArgs": {},
+          "selectionSource": "manual"
+        }
+      }
+    },
+    {
+      "name": "mode switch to candidate",
+      "event": {
+        "actionType": "set_mode",
+        "payload": {
+          "value": "candidate"
+        }
+      }
+    },
+    {
+      "name": "select cells transient UI event",
+      "event": {
+        "actionType": "select_cells",
+        "payload": {
+          "cells": ["r5c1", "r5c2", "r5c3"],
+          "replace": true,
+          "selectionSource": "keyboard"
+        }
+      }
+    }
+  ]
+}

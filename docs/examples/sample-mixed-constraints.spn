@@ -1,0 +1,29 @@
+[SPN "1.0"]
+[Title "Mixed Constraint Demo"]
+[Author "ZenNine"]
+[Date "2026.05.16"]
+[Size "9x9"]
+[Symbols "123456789"]
+[Variant "mixed"]
+
+@PUZZLE
+SIZE 9x9
+SYMBOLS 123456789
+GRID .........|....5....|.........|.........|....7....|.........|.........|....2....|.........
+REGION BOX 3x3
+CAGE id=c1 sum=10 cells=r1c1,r1c2
+CAGE id=c2 sum=15 cells=r2c1,r3c1,r3c2
+ARROW id=a1 bulb=r4c4 path=r4c5,r4c6
+THERMO id=t1 cells=r6c2,r6c3,r6c4,r6c5
+CONSTRAINT type=renban id=rb1 cells=r8c4,r8c5,r8c6 aux={"cyclic":false}
+
+@MOVES
+t=0 action=set_mode value=color
+t=400 action=set_color cell=r1c1 value=orange
+t=650 action=set_mode value=letter
+t=1100 action=set_letter cell=r2c2 value=A
+t=1800 action=set_mode value=candidate
+t=2200 action=toggle_candidate cell=r4c4 lane=center value=1
+
+@NOTES
+This file demonstrates variant constraints in SPN.

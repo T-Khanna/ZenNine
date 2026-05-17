@@ -1,0 +1,354 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://zennine.local/schemas/event-action.schema.json",
+  "title": "ZenNine Event Action",
+  "type": "object",
+  "oneOf": [
+    { "$ref": "#/$defs/SelectCellsAction" },
+    { "$ref": "#/$defs/ApplyToSelectionAction" },
+    { "$ref": "#/$defs/SetDigitAction" },
+    { "$ref": "#/$defs/ClearDigitAction" },
+    { "$ref": "#/$defs/CandidateAction" },
+    { "$ref": "#/$defs/SetColorAction" },
+    { "$ref": "#/$defs/SetLetterAction" },
+    { "$ref": "#/$defs/SetModeAction" },
+    { "$ref": "#/$defs/ConflictModeChangeAction" },
+    { "$ref": "#/$defs/UndoRedoAction" },
+    { "$ref": "#/$defs/CheckpointAction" }
+  ],
+  "$defs": {
+    "CellId": {
+      "type": "string",
+      "pattern": "^r[1-9][0-9]*c[1-9][0-9]*$"
+    },
+    "CellIdList": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/CellId" },
+      "minItems": 1,
+      "uniqueItems": true
+    },
+    "Symbol": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 8
+    },
+    "Lane": {
+      "type": "string",
+      "enum": ["center", "side"]
+    },
+    "SelectionSource": {
+      "type": "string",
+      "enum": ["drag", "row", "column", "box", "manual", "keyboard"]
+    },
+    "SelectCellsAction": {
+      "type": "object",
+      "required": ["actionType", "payload"],
+      "properties": {
+        "actionType": { "const": "select_cells" },
+        "payload": {
+          "type": "object",
+          "required": ["cells"],
+          "properties": {
+            "cells": { "$ref": "#/$defs/CellIdList" },
+            "replace": { "type": "boolean", "default": true },
+            "selectionSource": { "$ref": "#/$defs/SelectionSource" }
+          },
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": true
+    },
+    "ApplyToSelectionAction": {
+      "type": "object",
+      "required": ["actionType", "payload"],
+      "properties": {
+        "actionType": { "const": "apply_to_selection" },
+        "payload": {
+          "type": "object",
+          "required": ["targetCells", "op", "opArgs"],
+          "properties": {
+            "targetCells": { "$ref": "#/$defs/CellIdList" },
+            "op": {
+              "type": "string",
+              "enum": [
+                "set_digit",
+                "clear_digit",
+                "set_candidates",
+                "toggle_candidate",
+                "set_color",
+                "set_letter"
+              ]
+            },
+            "opArgs": { "type": "object" },
+            "selectionSource": { "$ref": "#/$defs/SelectionSource" }
+          },
+          "additionalProperties": true,
+          "oneOf": [
+            {
+              "properties": {
+                "op": { "const": "set_digit" },
+                "opArgs": {
+                  "type": "object",
+                  "required": ["value"],
+                  "properties": {
+                    "value": { "$ref": "#/$defs/Symbol" }
+                  },
+                  "additionalProperties": false
+                }
+              }
+            },
+            {
+              "properties": {
+                "op": { "const": "clear_digit" },
+                "opArgs": {
+                  "type": "object",
+                  "maxProperties": 0
+                }
+              }
+            },
+            {
+              "properties": {
+                "op": { "const": "set_candidates" },
+                "opArgs": {
+                  "type": "object",
+                  "required": ["lane", "values"],
+                  "properties": {
+                    "lane": { "$ref": "#/$defs/Lane" },
+                    "values": {
+                      "type": "array",
+                      "items": { "$ref": "#/$defs/Symbol" },
+                      "minItems": 1,
+                      "uniqueItems": true
+                    }
+                  },
+                  "additionalProperties": false
+                }
+              }
+            },
+            {
+              "properties": {
+                "op": { "const": "toggle_candidate" },
+                "opArgs": {
+                  "type": "object",
+                  "required": ["lane", "value"],
+                  "properties": {
+                    "lane": { "$ref": "#/$defs/Lane" },
+                    "value": { "$ref": "#/$defs/Symbol" }
+                  },
+                  "additionalProperties": false
+                }
+              }
+            },
+            {
+              "properties": {
+                "op": { "const": "set_color" },
+                "opArgs": {
+                  "type": "object",
+                  "required": ["value"],
+                  "properties": {
+                    "value": { "type": "string", "minLength": 1 }
+                  },
+                  "additionalProperties": false
+                }
+              }
+            },
+            {
+              "properties": {
+                "op": { "const": "set_letter" },
+                "opArgs": {
+                  "type": "object",
+                  "required": ["value"],
+                  "properties": {
+                    "value": { "type": "string", "minLength": 1, "maxLength": 1 }
+                  },
+                  "additionalProperties": false
+                }
+              }
+            }
+          ]
+        }
+      },
+      "additionalProperties": true
+    },
+    "SetDigitAction": {
+      "type": "object",
+      "required": ["actionType", "payload"],
+      "properties": {
+        "actionType": { "const": "set_digit" },
+        "payload": {
+          "type": "object",
+          "required": ["cell", "value"],
+          "properties": {
+            "cell": { "$ref": "#/$defs/CellId" },
+            "value": { "$ref": "#/$defs/Symbol" }
+          },
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": true
+    },
+    "ClearDigitAction": {
+      "type": "object",
+      "required": ["actionType", "payload"],
+      "properties": {
+        "actionType": { "const": "clear_digit" },
+        "payload": {
+          "type": "object",
+          "required": ["cell"],
+          "properties": {
+            "cell": { "$ref": "#/$defs/CellId" }
+          },
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": true
+    },
+    "CandidateAction": {
+      "type": "object",
+      "required": ["actionType", "payload"],
+      "properties": {
+        "actionType": {
+          "type": "string",
+          "enum": ["set_candidates", "toggle_candidate"]
+        },
+        "payload": {
+          "type": "object",
+          "required": ["cell", "lane"],
+          "properties": {
+            "cell": { "$ref": "#/$defs/CellId" },
+            "lane": { "$ref": "#/$defs/Lane" },
+            "value": { "$ref": "#/$defs/Symbol" },
+            "values": {
+              "type": "array",
+              "items": { "$ref": "#/$defs/Symbol" },
+              "minItems": 1,
+              "uniqueItems": true
+            }
+          },
+          "additionalProperties": true,
+          "oneOf": [
+            {
+              "properties": {
+                "actionType": { "const": "toggle_candidate" },
+                "value": { "$ref": "#/$defs/Symbol" }
+              },
+              "required": ["value"]
+            },
+            {
+              "properties": {
+                "actionType": { "const": "set_candidates" },
+                "values": {
+                  "type": "array",
+                  "items": { "$ref": "#/$defs/Symbol" },
+                  "minItems": 1,
+                  "uniqueItems": true
+                }
+              },
+              "required": ["values"]
+            }
+          ]
+        }
+      },
+      "additionalProperties": true
+    },
+    "SetColorAction": {
+      "type": "object",
+      "required": ["actionType", "payload"],
+      "properties": {
+        "actionType": { "const": "set_color" },
+        "payload": {
+          "type": "object",
+          "required": ["cell", "value"],
+          "properties": {
+            "cell": { "$ref": "#/$defs/CellId" },
+            "value": { "type": "string", "minLength": 1 }
+          },
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": true
+    },
+    "SetLetterAction": {
+      "type": "object",
+      "required": ["actionType", "payload"],
+      "properties": {
+        "actionType": { "const": "set_letter" },
+        "payload": {
+          "type": "object",
+          "required": ["cell", "value"],
+          "properties": {
+            "cell": { "$ref": "#/$defs/CellId" },
+            "value": { "type": "string", "minLength": 1, "maxLength": 1 }
+          },
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": true
+    },
+    "SetModeAction": {
+      "type": "object",
+      "required": ["actionType", "payload"],
+      "properties": {
+        "actionType": { "const": "set_mode" },
+        "payload": {
+          "type": "object",
+          "required": ["value"],
+          "properties": {
+            "value": {
+              "type": "string",
+              "enum": ["digit", "candidate", "color", "letter"]
+            }
+          },
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": true
+    },
+    "ConflictModeChangeAction": {
+      "type": "object",
+      "required": ["actionType", "payload"],
+      "properties": {
+        "actionType": { "const": "conflict_mode_change" },
+        "payload": {
+          "type": "object",
+          "required": ["value"],
+          "properties": {
+            "value": {
+              "type": "string",
+              "enum": ["off", "soft", "strict"]
+            }
+          },
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": true
+    },
+    "UndoRedoAction": {
+      "type": "object",
+      "required": ["actionType", "payload"],
+      "properties": {
+        "actionType": { "type": "string", "enum": ["undo", "redo"] },
+        "payload": {
+          "type": "object",
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": true
+    },
+    "CheckpointAction": {
+      "type": "object",
+      "required": ["actionType", "payload"],
+      "properties": {
+        "actionType": { "const": "checkpoint" },
+        "payload": {
+          "type": "object",
+          "properties": {
+            "label": { "type": "string" }
+          },
+          "additionalProperties": true
+        }
+      },
+      "additionalProperties": true
+    }
+  }
+}
