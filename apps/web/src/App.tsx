@@ -1,15 +1,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { fetchPing } from './lib/api'
+import { appendSessionEvent, fetchPing, toApiAction, type BoardEvent } from './lib/api'
 import { extractGivensFromSpn } from './lib/spn'
 import './App.css'
 
 type ApiStatus = 'idle' | 'loading' | 'ok' | 'error'
 type InputMode = 'digit' | 'candidate'
-
-type BoardEvent =
-  | { type: 'set_digit'; targetCells: number[]; digit: number }
-  | { type: 'clear_cell'; targetCells: number[] }
-  | { type: 'toggle_candidate'; targetCells: number[]; digit: number }
 
 type CellState = {
   digit: number | null
@@ -172,7 +167,12 @@ function getCellIndexFromPointerTarget(target: EventTarget | null): number | nul
   return parsed
 }
 
+function createClientSessionId(): string {
+  return `local-web-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`
+}
+
 function App() {
+  const [sessionId] = useState(() => createClientSessionId())
   const [apiStatus, setApiStatus] = useState<ApiStatus>('idle')
   const [apiMessage, setApiMessage] = useState('Not checked yet')
   const [events, setEvents] = useState<BoardEvent[]>([])
@@ -184,6 +184,8 @@ function App() {
   const [showConflicts, setShowConflicts] = useState(true)
   const [givenDigits, setGivenDigits] = useState<Map<number, number>>(() => new Map())
   const [puzzleSource, setPuzzleSource] = useState('Loading default SPN...')
+  const [eventSyncStatus, setEventSyncStatus] = useState<ApiStatus>('idle')
+  const [eventSyncMessage, setEventSyncMessage] = useState('No events synced yet')
 
   const isPointerActiveRef = useRef(false)
 
@@ -256,11 +258,24 @@ function App() {
     void checkPing()
   }, [checkPing])
 
+  const syncEventToApi = useCallback(async (event: BoardEvent) => {
+    try {
+      setEventSyncStatus('loading')
+      const response = await appendSessionEvent(sessionId, toApiAction(event))
+      setEventSyncStatus('ok')
+      setEventSyncMessage(`Synced event ${response.index + 1} (session index ${response.index})`)
+    } catch (error) {
+      setEventSyncStatus('error')
+      setEventSyncMessage(error instanceof Error ? error.message : 'Unknown sync error')
+    }
+  }, [sessionId])
+
   const appendEvent = useCallback((event: BoardEvent) => {
     const nextCursor = cursor + 1
     setEvents((previous) => [...previous.slice(0, cursor), event])
     setCursor(nextCursor)
-  }, [cursor])
+    void syncEventToApi(event)
+  }, [cursor, syncEventToApi])
 
   const getSelectionTargets = useCallback((): number[] => {
     const fromSet = Array.from(selectedCells)
@@ -618,10 +633,13 @@ function App() {
             <h2>Board State</h2>
             <ul>
               <li>Puzzle source: {puzzleSource}</li>
+              <li>Backend session: {sessionId}</li>
               <li>Events recorded: {events.length}</li>
               <li>Timeline position: {cursor}</li>
               <li>Input mode: {inputMode}</li>
+              <li>API sync: {eventSyncStatus}</li>
             </ul>
+            <p className="mono">{eventSyncMessage}</p>
           </article>
 
           <article className="card">

@@ -131,3 +131,37 @@ Purpose: capture architecture and product decisions with context, alternatives, 
   - Slightly more reliance on payload structure for scope semantics.
 - Follow-ups:
   - Keep parser/replay docs aligned with targetCells-scoped action examples.
+
+### DL-0008: Backend Uses One-Command Bootstrap Runner
+- Date: 2026-05-18
+- Status: Accepted
+- Owners: ZenNine API
+- Context: Windows path/activation friction for uvicorn in virtual environments caused repeated startup failures and inconsistent operator workflows.
+- Decision: Use `apps/api/run.py` as the canonical backend entrypoint. The runner ensures `.venv` exists, installs requirements on first run, and then execs uvicorn in-place.
+- Alternatives Considered:
+  - Keep direct uvicorn invocation in npm scripts.
+  - Require manual venv activation for each shell session.
+  - Migrate immediately to a different package manager/runtime wrapper.
+- Consequences:
+  - Single, predictable startup command from repo root (`npm run api:run`).
+  - Lower onboarding/setup friction on Windows.
+  - Slightly more custom bootstrap logic to maintain.
+- Follow-ups:
+  - Add optional explicit dev mode flag if reload behavior is needed later.
+
+### DL-0009: Frontend Uses Per-Load Session IDs for Event Sync
+- Date: 2026-05-18
+- Status: Accepted
+- Owners: ZenNine Web
+- Context: A fixed backend session id (`local-web`) caused accumulated server indexes across runs, making UI sync messages appear inconsistent with local timeline counts.
+- Decision: Generate a fresh client session id on app load and use it for all append/list calls in that page session.
+- Alternatives Considered:
+  - Keep a single static session id for all local runs.
+  - Manually clear backend in-memory sessions between runs.
+  - Reset server-side index counters independently of session history.
+- Consequences:
+  - UI event counts and backend sync indices remain intuitive per run.
+  - Historical local sessions are separated instead of co-mingled.
+  - Session ids are ephemeral and not currently user-addressable.
+- Follow-ups:
+  - Add optional session picker/history view if cross-run inspection becomes a requirement.

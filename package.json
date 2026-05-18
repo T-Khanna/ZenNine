@@ -7,7 +7,7 @@
     "web:dev": "npm --prefix apps/web run dev",
     "web:build": "npm --prefix apps/web run build",
     "web:preview": "npm --prefix apps/web run preview",
-    "api:run": "uvicorn app.main:app --reload --host 127.0.0.1 --port 8000 --app-dir apps/api",
+    "api:run": "python apps/api/run.py",
     "api:check": "python -m py_compile apps/api/app/main.py"
   }
 }

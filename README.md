@@ -44,6 +44,7 @@ This repository now includes initial implementation scaffolding plus planning/sp
 - Web app now includes a playable board loop with:
   - default puzzle givens loaded from sample SPN (`apps/web/public/examples/sample-classic-9x9.spn`),
   - event-backed board updates,
+  - initial backend event append/validate contract wiring,
   - digit and candidate input modes,
   - undo/redo timeline cursor,
   - conflict highlighting toggle,
@@ -69,10 +70,13 @@ npm run dev
 ### Backend
 
 cd apps/api
+python run.py
+
+Alternative (manual environment setup):
 python -m venv .venv
 .venv\\Scripts\\activate
 pip install -r requirements.txt
-uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
+python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
 
 ## Top Priorities
 
