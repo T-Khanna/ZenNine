@@ -19,3 +19,6 @@ venv/
 .env
 .env.*
 !.env.example
+
+# Local planning scratchpad (machine-local only)
+.local/
