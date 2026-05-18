@@ -35,11 +35,12 @@ Purpose: define release gates for SPN parser/import and replay/event systems.
 ### B1. Determinism
 - Reapplying the same ordered event list always reconstructs identical board state.
 - Undo followed by redo returns to identical board hash/state.
-- Batch action apply_to_selection is reversed as one undo unit.
+- A targetCells-scoped edit is reversed as one undo unit.
 
 ### B2. Event Contract Compliance
 - Every replayed event is schema-valid before apply.
-- Candidate actions require lane and respect lane-specific storage.
+- targetCells-scoped edit actions always include a non-empty targetCells list.
+- Candidate actions require lane and respect lane-specific storage across all target cells.
 - Unknown optional metadata does not break replay.
 
 ### B3. Timeline Controls

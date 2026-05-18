@@ -186,7 +186,7 @@ stateDiagram-v2
   ModeColor --> MultiSelectActive: drag or shift+arrow extend
   ModeLetter --> MultiSelectActive: drag or shift+arrow extend
 
-  MultiSelectActive --> BatchApply: keypad/action tap
+  MultiSelectActive --> BatchApply: keypad/action tap (targetCells-scoped edit)
   BatchApply --> MultiSelectActive: keep selection
   BatchApply --> Idle: clear selection
 
@@ -198,4 +198,4 @@ stateDiagram-v2
   Scrubbing --> TimelineOpen: release slider
 ```
 
-Implementation note (current MVP): after a batch apply, the multi-selection is collapsed to the active cell instead of being kept; keyboard extension uses shift+arrow.
+Implementation note (current MVP): after a targetCells-scoped edit, the multi-selection is collapsed to the active cell instead of being kept; keyboard extension uses shift+arrow.

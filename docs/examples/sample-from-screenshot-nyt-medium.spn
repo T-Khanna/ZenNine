@@ -22,7 +22,7 @@ t=600 action=toggle_candidate cell=r1c2 lane=center value=7
 t=950 action=toggle_candidate cell=r1c2 lane=side value=4
 t=1200 action=toggle_candidate cell=r1c2 lane=side value=8
 # Multi-select candidate brush
-t=1900 action=apply_to_selection op=toggle_candidate cells=r2c1,r2c2,r2c4 lane=center value=6
+t=1900 action=toggle_candidate targetCells=r2c1,r2c2,r2c4 lane=center value=6
 
 @NOTES
 This is a transcription sample from the provided screenshot to test import flow.

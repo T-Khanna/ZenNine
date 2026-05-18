@@ -114,8 +114,6 @@ Validation philosophy:
 - set_color
 - set_letter
 - set_mode
-- select_cells
-- apply_to_selection
 - conflict_mode_change
 - undo
 - redo
@@ -123,18 +121,14 @@ Validation philosophy:
 
 ### Multi-select action semantics
 
-- select_cells updates a transient selection set in UI state.
-- apply_to_selection is the canonical event used for replay-safe batch edits.
-- apply_to_selection payload must include:
-	- targetCells: ordered list of cell ids.
-	- op: set_digit | clear_digit | set_candidates | toggle_candidate | set_color | set_letter.
-	- opArgs: operation-specific key-values, including lane=center|side for candidate ops.
-	- selectionSource: drag | row | column | box | manual.
-- Undo must reverse one apply_to_selection event as a single unit.
+- Cell-editing events are selection-shaped: the payload carries targetCells plus the operation parameters.
+- targetCells is the canonical scope dimension for digit, candidate, color, and letter edits.
+- selectionSource documents how the target set was formed (drag, row, column, box, manual, keyboard).
+- Undo must reverse one targetCells-scoped event as a single unit.
 
 Candidate action semantics:
-- set_candidates sets the full candidate set for a cell in either the center or side lane.
-- toggle_candidate toggles one symbol in a chosen lane.
+- set_candidates sets the full candidate set for every target cell in either the center or side lane.
+- toggle_candidate toggles one symbol in a chosen lane for every target cell.
 - Candidate mode should default to Snyder-style workflows, where lane choice is explicit but the action name stays generic.
 
 ## 6. API Draft

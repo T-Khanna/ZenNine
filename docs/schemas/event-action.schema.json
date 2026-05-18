@@ -4,8 +4,6 @@
   "title": "ZenNine Event Action",
   "type": "object",
   "oneOf": [
-    { "$ref": "#/$defs/SelectCellsAction" },
-    { "$ref": "#/$defs/ApplyToSelectionAction" },
     { "$ref": "#/$defs/SetDigitAction" },
     { "$ref": "#/$defs/ClearDigitAction" },
     { "$ref": "#/$defs/CandidateAction" },
@@ -40,136 +38,6 @@
       "type": "string",
       "enum": ["drag", "row", "column", "box", "manual", "keyboard"]
     },
-    "SelectCellsAction": {
-      "type": "object",
-      "required": ["actionType", "payload"],
-      "properties": {
-        "actionType": { "const": "select_cells" },
-        "payload": {
-          "type": "object",
-          "required": ["cells"],
-          "properties": {
-            "cells": { "$ref": "#/$defs/CellIdList" },
-            "replace": { "type": "boolean", "default": true },
-            "selectionSource": { "$ref": "#/$defs/SelectionSource" }
-          },
-          "additionalProperties": true
-        }
-      },
-      "additionalProperties": true
-    },
-    "ApplyToSelectionAction": {
-      "type": "object",
-      "required": ["actionType", "payload"],
-      "properties": {
-        "actionType": { "const": "apply_to_selection" },
-        "payload": {
-          "type": "object",
-          "required": ["targetCells", "op", "opArgs"],
-          "properties": {
-            "targetCells": { "$ref": "#/$defs/CellIdList" },
-            "op": {
-              "type": "string",
-              "enum": [
-                "set_digit",
-                "clear_digit",
-                "set_candidates",
-                "toggle_candidate",
-                "set_color",
-                "set_letter"
-              ]
-            },
-            "opArgs": { "type": "object" },
-            "selectionSource": { "$ref": "#/$defs/SelectionSource" }
-          },
-          "additionalProperties": true,
-          "oneOf": [
-            {
-              "properties": {
-                "op": { "const": "set_digit" },
-                "opArgs": {
-                  "type": "object",
-                  "required": ["value"],
-                  "properties": {
-                    "value": { "$ref": "#/$defs/Symbol" }
-                  },
-                  "additionalProperties": false
-                }
-              }
-            },
-            {
-              "properties": {
-                "op": { "const": "clear_digit" },
-                "opArgs": {
-                  "type": "object",
-                  "maxProperties": 0
-                }
-              }
-            },
-            {
-              "properties": {
-                "op": { "const": "set_candidates" },
-                "opArgs": {
-                  "type": "object",
-                  "required": ["lane", "values"],
-                  "properties": {
-                    "lane": { "$ref": "#/$defs/Lane" },
-                    "values": {
-                      "type": "array",
-                      "items": { "$ref": "#/$defs/Symbol" },
-                      "minItems": 1,
-                      "uniqueItems": true
-                    }
-                  },
-                  "additionalProperties": false
-                }
-              }
-            },
-            {
-              "properties": {
-                "op": { "const": "toggle_candidate" },
-                "opArgs": {
-                  "type": "object",
-                  "required": ["lane", "value"],
-                  "properties": {
-                    "lane": { "$ref": "#/$defs/Lane" },
-                    "value": { "$ref": "#/$defs/Symbol" }
-                  },
-                  "additionalProperties": false
-                }
-              }
-            },
-            {
-              "properties": {
-                "op": { "const": "set_color" },
-                "opArgs": {
-                  "type": "object",
-                  "required": ["value"],
-                  "properties": {
-                    "value": { "type": "string", "minLength": 1 }
-                  },
-                  "additionalProperties": false
-                }
-              }
-            },
-            {
-              "properties": {
-                "op": { "const": "set_letter" },
-                "opArgs": {
-                  "type": "object",
-                  "required": ["value"],
-                  "properties": {
-                    "value": { "type": "string", "minLength": 1, "maxLength": 1 }
-                  },
-                  "additionalProperties": false
-                }
-              }
-            }
-          ]
-        }
-      },
-      "additionalProperties": true
-    },
     "SetDigitAction": {
       "type": "object",
       "required": ["actionType", "payload"],
@@ -177,9 +45,9 @@
         "actionType": { "const": "set_digit" },
         "payload": {
           "type": "object",
-          "required": ["cell", "value"],
+          "required": ["targetCells", "value"],
           "properties": {
-            "cell": { "$ref": "#/$defs/CellId" },
+            "targetCells": { "$ref": "#/$defs/CellIdList" },
             "value": { "$ref": "#/$defs/Symbol" }
           },
           "additionalProperties": true
@@ -194,9 +62,9 @@
         "actionType": { "const": "clear_digit" },
         "payload": {
           "type": "object",
-          "required": ["cell"],
+          "required": ["targetCells"],
           "properties": {
-            "cell": { "$ref": "#/$defs/CellId" }
+            "targetCells": { "$ref": "#/$defs/CellIdList" }
           },
           "additionalProperties": true
         }
@@ -213,9 +81,9 @@
         },
         "payload": {
           "type": "object",
-          "required": ["cell", "lane"],
+          "required": ["targetCells", "lane"],
           "properties": {
-            "cell": { "$ref": "#/$defs/CellId" },
+            "targetCells": { "$ref": "#/$defs/CellIdList" },
             "lane": { "$ref": "#/$defs/Lane" },
             "value": { "$ref": "#/$defs/Symbol" },
             "values": {
@@ -258,9 +126,9 @@
         "actionType": { "const": "set_color" },
         "payload": {
           "type": "object",
-          "required": ["cell", "value"],
+          "required": ["targetCells", "value"],
           "properties": {
-            "cell": { "$ref": "#/$defs/CellId" },
+            "targetCells": { "$ref": "#/$defs/CellIdList" },
             "value": { "type": "string", "minLength": 1 }
           },
           "additionalProperties": true
@@ -275,9 +143,9 @@
         "actionType": { "const": "set_letter" },
         "payload": {
           "type": "object",
-          "required": ["cell", "value"],
+          "required": ["targetCells", "value"],
           "properties": {
-            "cell": { "$ref": "#/$defs/CellId" },
+            "targetCells": { "$ref": "#/$defs/CellIdList" },
             "value": { "type": "string", "minLength": 1, "maxLength": 1 }
           },
           "additionalProperties": true

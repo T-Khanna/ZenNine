@@ -38,7 +38,7 @@ This repository now includes initial implementation scaffolding plus planning/sp
 ## Current Status
 
 - Product, architecture, and format specs are drafted.
-- Event model includes lane-aware candidate actions and multi-select batch actions.
+- Event model uses targetCells-scoped, selection-shaped actions with lane-aware candidate semantics.
 - Example SPN files and event payload examples are included.
 - Frontend and backend scaffolding are in place.
 - Web app now includes a playable board loop with:
@@ -47,7 +47,7 @@ This repository now includes initial implementation scaffolding plus planning/sp
   - digit and candidate input modes,
   - undo/redo timeline cursor,
   - conflict highlighting toggle,
-  - drag multi-select with batch apply,
+  - drag multi-select with targetCells-scoped apply,
   - keyboard controls (arrows, shift+arrows to expand selection, 1-9, space mode toggle, delete/backspace).
 
 ## Quick Start

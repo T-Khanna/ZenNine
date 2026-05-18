@@ -7,12 +7,9 @@ type ApiStatus = 'idle' | 'loading' | 'ok' | 'error'
 type InputMode = 'digit' | 'candidate'
 
 type BoardEvent =
-  | { type: 'set_digit'; cell: number; digit: number }
-  | { type: 'clear_cell'; cell: number }
-  | { type: 'toggle_candidate'; cell: number; digit: number }
-  | { type: 'set_digit_multi'; cells: number[]; digit: number }
-  | { type: 'clear_cell_multi'; cells: number[] }
-  | { type: 'toggle_candidate_multi'; cells: number[]; digit: number }
+  | { type: 'set_digit'; targetCells: number[]; digit: number }
+  | { type: 'clear_cell'; targetCells: number[] }
+  | { type: 'toggle_candidate'; targetCells: number[]; digit: number }
 
 type CellState = {
   digit: number | null
@@ -39,12 +36,12 @@ function createInitialBoard(givens: Map<number, number>): CellState[] {
 function replayBoard(givens: Map<number, number>, events: BoardEvent[]): CellState[] {
   const board = createInitialBoard(givens)
 
-  const applySingleEvent = (event: { type: 'set_digit' | 'clear_cell' | 'toggle_candidate'; cell: number; digit?: number }) => {
-    const cell = board[event.cell]
+  const applyEventToCell = (cellIndex: number, event: BoardEvent): void => {
+    const cell = board[cellIndex]
 
     if (!cell || cell.given) return
 
-    if (event.type === 'set_digit' && event.digit !== undefined) {
+    if (event.type === 'set_digit') {
       cell.digit = event.digit
       cell.candidates.clear()
       return
@@ -56,40 +53,19 @@ function replayBoard(givens: Map<number, number>, events: BoardEvent[]): CellSta
       return
     }
 
-    if (event.type === 'toggle_candidate' && event.digit !== undefined) {
-      if (cell.digit !== null) return
+    if (cell.digit !== null) return
 
-      if (cell.candidates.has(event.digit)) {
-        cell.candidates.delete(event.digit)
-      } else {
-        cell.candidates.add(event.digit)
-      }
+    if (cell.candidates.has(event.digit)) {
+      cell.candidates.delete(event.digit)
+    } else {
+      cell.candidates.add(event.digit)
     }
   }
 
   for (const event of events) {
-    if (event.type === 'set_digit_multi') {
-      for (const cell of event.cells) {
-        applySingleEvent({ type: 'set_digit', cell, digit: event.digit })
-      }
-      continue
+    for (const cellIndex of event.targetCells) {
+      applyEventToCell(cellIndex, event)
     }
-
-    if (event.type === 'clear_cell_multi') {
-      for (const cell of event.cells) {
-        applySingleEvent({ type: 'clear_cell', cell })
-      }
-      continue
-    }
-
-    if (event.type === 'toggle_candidate_multi') {
-      for (const cell of event.cells) {
-        applySingleEvent({ type: 'toggle_candidate', cell, digit: event.digit })
-      }
-      continue
-    }
-
-    applySingleEvent(event)
   }
 
   return board
@@ -306,33 +282,14 @@ function App() {
     if (targets.length === 0) return
 
     if (inputMode === 'candidate') {
-      if (targets.length === 1) {
-        appendEvent({ type: 'toggle_candidate', cell: targets[0], digit })
-      } else {
-        appendEvent({ type: 'toggle_candidate_multi', cells: targets, digit })
-      }
+      appendEvent({ type: 'toggle_candidate', targetCells: targets, digit })
       collapseSelectionToActiveCell()
       return
     }
 
-    if (targets.length === 1) {
-      const target = board[targets[0]]
-      if (!target || target.given) return
-
-      if (target.digit === digit) {
-        appendEvent({ type: 'clear_cell', cell: targets[0] })
-        collapseSelectionToActiveCell()
-        return
-      }
-
-      appendEvent({ type: 'set_digit', cell: targets[0], digit })
-      collapseSelectionToActiveCell()
-      return
-    }
-
-    appendEvent({ type: 'set_digit_multi', cells: targets, digit })
+    appendEvent({ type: 'set_digit', targetCells: targets, digit })
     collapseSelectionToActiveCell()
-  }, [appendEvent, board, collapseSelectionToActiveCell, getSelectionTargets, inputMode])
+  }, [appendEvent, collapseSelectionToActiveCell, getSelectionTargets, inputMode])
 
   const clearSelectedCell = useCallback(() => {
     const targets = getSelectionTargets()
@@ -344,12 +301,12 @@ function App() {
       if (!target || target.given) return
       if (target.digit === null && target.candidates.size === 0) return
 
-      appendEvent({ type: 'clear_cell', cell: targets[0] })
+      appendEvent({ type: 'clear_cell', targetCells: targets })
       collapseSelectionToActiveCell()
       return
     }
 
-    appendEvent({ type: 'clear_cell_multi', cells: targets })
+    appendEvent({ type: 'clear_cell', targetCells: targets })
     collapseSelectionToActiveCell()
   }, [appendEvent, board, collapseSelectionToActiveCell, getSelectionTargets])
 

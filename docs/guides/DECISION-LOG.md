@@ -115,3 +115,19 @@ Purpose: capture architecture and product decisions with context, alternatives, 
   - Faster action loop for iterative solve input.
 - Follow-ups:
   - Revisit sticky selection as an advanced optional setting if requested.
+
+### DL-0007: Cell Edits Use TargetCells as the Scope Dimension
+- Date: 2026-05-18
+- Status: Accepted
+- Owners: ZenNine Web
+- Context: Separate single-cell and multi-cell event variants added duplication without improving the event model.
+- Decision: Keep operation names simple and encode single vs multi behavior through targetCells in the payload.
+- Alternatives Considered:
+  - Maintain separate single-cell and multi-cell event types.
+  - Introduce a wrapper action that only exists to distinguish selection scope.
+- Consequences:
+  - One reducer path for all board edits.
+  - Cleaner schema and simpler examples.
+  - Slightly more reliance on payload structure for scope semantics.
+- Follow-ups:
+  - Keep parser/replay docs aligned with targetCells-scoped action examples.

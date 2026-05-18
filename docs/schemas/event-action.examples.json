@@ -2,79 +2,68 @@
   "description": "Examples that conform to event-action.schema.json",
   "examples": [
     {
-      "name": "single toggle center candidate",
+      "name": "toggle center candidate across one cell",
       "event": {
         "actionType": "toggle_candidate",
         "payload": {
-          "cell": "r4c7",
+          "targetCells": ["r4c7"],
           "lane": "center",
           "value": "6"
         }
       }
     },
     {
-      "name": "single set side candidates",
+      "name": "set side candidates across one cell",
       "event": {
         "actionType": "set_candidates",
         "payload": {
-          "cell": "r4c7",
+          "targetCells": ["r4c7"],
           "lane": "side",
           "values": ["1", "4", "9"]
         }
       }
     },
     {
-      "name": "batch toggle center candidate across selection",
+      "name": "toggle center candidate across drag selection",
       "event": {
-        "actionType": "apply_to_selection",
+        "actionType": "toggle_candidate",
         "payload": {
           "targetCells": ["r2c1", "r2c2", "r2c4"],
-          "op": "toggle_candidate",
-          "opArgs": {
-            "lane": "center",
-            "value": "6"
-          },
+          "lane": "center",
+          "value": "6",
           "selectionSource": "drag"
         }
       }
     },
     {
-      "name": "batch set side candidates across selection",
+      "name": "set side candidates across box selection",
       "event": {
-        "actionType": "apply_to_selection",
+        "actionType": "set_candidates",
         "payload": {
           "targetCells": ["r7c4", "r7c5", "r7c6"],
-          "op": "set_candidates",
-          "opArgs": {
-            "lane": "side",
-            "values": ["2", "8"]
-          },
+          "lane": "side",
+          "values": ["2", "8"],
           "selectionSource": "box"
         }
       }
     },
     {
-      "name": "batch place digit",
+      "name": "place digit across row selection",
       "event": {
-        "actionType": "apply_to_selection",
+        "actionType": "set_digit",
         "payload": {
           "targetCells": ["r1c1", "r1c2"],
-          "op": "set_digit",
-          "opArgs": {
-            "value": "5"
-          },
+          "value": "5",
           "selectionSource": "row"
         }
       }
     },
     {
-      "name": "batch clear digit",
+      "name": "clear digit across manual selection",
       "event": {
-        "actionType": "apply_to_selection",
+        "actionType": "clear_digit",
         "payload": {
           "targetCells": ["r3c3", "r3c4"],
-          "op": "clear_digit",
-          "opArgs": {},
           "selectionSource": "manual"
         }
       }
@@ -89,12 +78,12 @@
       }
     },
     {
-      "name": "select cells transient UI event",
+      "name": "set digit across keyboard selection",
       "event": {
-        "actionType": "select_cells",
+        "actionType": "set_digit",
         "payload": {
-          "cells": ["r5c1", "r5c2", "r5c3"],
-          "replace": true,
+          "targetCells": ["r5c1", "r5c2", "r5c3"],
+          "value": "7",
           "selectionSource": "keyboard"
         }
       }

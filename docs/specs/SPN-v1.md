@@ -64,13 +64,12 @@ Cell-list format:
 Each move is one line:
 t=<ms> action=<name> <key>=<value> ...
 
-Examples:
-- t=1200 action=set_digit cell=r1c1 value=5
-- t=1800 action=toggle_candidate cell=r1c2 lane=center value=3
-- t=1900 action=toggle_candidate cell=r1c2 lane=side value=7
-- t=2100 action=set_color cell=r2c3 value=blue
+- t=1200 action=set_digit targetCells=r1c1 value=5
+- t=1800 action=toggle_candidate targetCells=r1c2 lane=center value=3
+- t=1900 action=toggle_candidate targetCells=r1c2 lane=side value=7
+- t=2100 action=set_color targetCells=r2c3 value=blue
 - t=3100 action=undo
-- t=4100 action=apply_to_selection op=toggle_candidate cells=r2c1,r2c2,r2c3 lane=center value=4
+- t=4100 action=toggle_candidate targetCells=r2c1,r2c2,r2c3 lane=center value=4
 
 Parser note:
 - Unknown action names should be preserved for forward compatibility.
@@ -105,7 +104,7 @@ move_line     = "t=" int " action=" id (" " kvpair)* ;
 - THERMO order is significant and must contain at least 2 cells.
 - ARROW bulb and path must be non-empty and disjoint unless variant says otherwise.
 - Candidate actions must specify lane=center|side as a parameter.
-- apply_to_selection must contain non-empty cells list and an op value.
+- targetCells-scoped edit actions must contain a non-empty targetCells list.
 
 ## 9. Canonical JSON Mapping
 
