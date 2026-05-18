@@ -84,3 +84,34 @@ Purpose: capture architecture and product decisions with context, alternatives, 
   - Slight delay before first executable prototype.
 - Follow-ups:
   - Create scaffolding tasks directly from acceptance criteria.
+
+### DL-0005: Default Puzzle Bootstraps from SPN Sample
+- Date: 2026-05-18
+- Status: Accepted
+- Owners: ZenNine Web
+- Context: Hardcoded fallback givens in UI code drift from the SPN-first architecture and do not validate import wiring.
+- Decision: Load initial givens from a default SPN sample (`apps/web/public/examples/sample-classic-9x9.spn`) at app startup.
+- Alternatives Considered:
+  - Keep hardcoded givens map in frontend state.
+  - Load default puzzle from JSON instead of SPN.
+- Consequences:
+  - Verifies SPN parsing path in the normal app boot flow.
+  - Requires explicit UI handling for SPN load failures.
+- Follow-ups:
+  - Add user-facing SPN import paths (paste/upload/drag-drop).
+  - Derive board dimensions from SPN metadata instead of fixed constants.
+
+### DL-0006: Multi-Selection Is Ephemeral After Apply
+- Date: 2026-05-18
+- Status: Accepted
+- Owners: ZenNine Web
+- Context: Persistent multi-selection after a batch action caused accidental repeated edits and felt unlike the intended ZenNine interaction model.
+- Decision: Keep drag multi-select transient and collapse selection to active cell after apply/clear actions.
+- Alternatives Considered:
+  - Keep multi-selection active after batch apply.
+  - Add a toggle for sticky selection mode.
+- Consequences:
+  - Lower risk of accidental repeated operations.
+  - Faster action loop for iterative solve input.
+- Follow-ups:
+  - Revisit sticky selection as an advanced optional setting if requested.

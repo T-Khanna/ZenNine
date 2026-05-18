@@ -1,0 +1,26 @@
+[SPN "1.0"]
+[Title "Classic 9x9 Demo"]
+[Author "ZenNine"]
+[Date "2026.05.16"]
+[Size "9x9"]
+[Symbols "123456789"]
+[Variant "classic"]
+
+@PUZZLE
+SIZE 9x9
+SYMBOLS 123456789
+GRID 53..7....|6..195...|.98....6.|8...6...3|4..8.3..1|7...2...6|.6....28.|...419..5|....8..79
+REGION BOX 3x3
+
+@MOVES
+t=0 action=set_mode value=digit
+t=950 action=set_digit cell=r1c3 value=4
+t=1600 action=toggle_candidate cell=r1c4 lane=center value=2
+t=2100 action=toggle_candidate cell=r1c4 lane=center value=6
+t=3400 action=set_mode value=candidate
+t=4200 action=toggle_candidate cell=r2c2 lane=center value=7
+t=5100 action=undo
+t=5800 action=redo
+
+@NOTES
+Simple SPN sample with givens and a small move log.

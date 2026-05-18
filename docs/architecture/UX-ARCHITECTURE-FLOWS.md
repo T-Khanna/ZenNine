@@ -180,11 +180,11 @@ stateDiagram-v2
   ModeLetter --> ModeCandidateCenter: switch mode
   ModeLetter --> ModeColor: switch mode
 
-  ModeDigit --> MultiSelectActive: drag or keyboard extend
-  ModeCandidateCenter --> MultiSelectActive: drag or keyboard extend
-  ModeCandidateSide --> MultiSelectActive: drag or keyboard extend
-  ModeColor --> MultiSelectActive: drag or keyboard extend
-  ModeLetter --> MultiSelectActive: drag or keyboard extend
+  ModeDigit --> MultiSelectActive: drag or shift+arrow extend
+  ModeCandidateCenter --> MultiSelectActive: drag or shift+arrow extend
+  ModeCandidateSide --> MultiSelectActive: drag or shift+arrow extend
+  ModeColor --> MultiSelectActive: drag or shift+arrow extend
+  ModeLetter --> MultiSelectActive: drag or shift+arrow extend
 
   MultiSelectActive --> BatchApply: keypad/action tap
   BatchApply --> MultiSelectActive: keep selection
@@ -197,3 +197,5 @@ stateDiagram-v2
   TimelineOpen --> Scrubbing: drag slider
   Scrubbing --> TimelineOpen: release slider
 ```
+
+Implementation note (current MVP): after a batch apply, the multi-selection is collapsed to the active cell instead of being kept; keyboard extension uses shift+arrow.

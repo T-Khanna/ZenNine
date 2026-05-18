@@ -1,73 +1,45 @@
-# React + TypeScript + Vite
+# ZenNine Web App
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React + TypeScript + Vite frontend for the ZenNine Sudoku workbench.
 
-Currently, two official plugins are available:
+## Current Milestone
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+Implemented playable board loop MVP:
 
-## React Compiler
+- Givens are loaded from the default SPN example file (`public/examples/sample-classic-9x9.spn`).
+- Event-backed board state replayed from an append-only event timeline.
+- Input modes:
+  - Digit mode (set/replace value)
+  - Candidate mode (toggle candidate marks)
+- Undo/redo via timeline cursor.
+- Conflict highlighting toggle (row/column/box duplicates).
+- Keyboard controls:
+  - Arrow keys: move selection
+  - Shift + Arrow keys: expand selection range
+  - Space: toggle digit/candidate mode
+  - 1-9: input digit/candidate
+  - Backspace/Delete: clear selected cell
+  - Ctrl/Cmd+Z, Ctrl/Cmd+Y, Ctrl/Cmd+Shift+Z: undo/redo
+- Drag controls:
+  - Drag across cells to create multi-selection
+  - Keypad/keyboard digit applies to selected cells
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## Scripts
 
-## Expanding the ESLint configuration
+From repo root:
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+- npm run web:dev
+- npm run web:build
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+From apps/web:
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+- npm run dev
+- npm run build
+- npm run lint
+- npm run preview
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+## Current Gaps
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
+- Full SPN import flows are not wired yet (paste/upload/drag-drop). Current load path is default sample SPN only.
+- Backend integration is limited to a ping check.
+- Replay scrubber UI is not implemented yet.

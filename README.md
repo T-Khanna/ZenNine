@@ -41,6 +41,14 @@ This repository now includes initial implementation scaffolding plus planning/sp
 - Event model includes lane-aware candidate actions and multi-select batch actions.
 - Example SPN files and event payload examples are included.
 - Frontend and backend scaffolding are in place.
+- Web app now includes a playable board loop with:
+  - default puzzle givens loaded from sample SPN (`apps/web/public/examples/sample-classic-9x9.spn`),
+  - event-backed board updates,
+  - digit and candidate input modes,
+  - undo/redo timeline cursor,
+  - conflict highlighting toggle,
+  - drag multi-select with batch apply,
+  - keyboard controls (arrows, shift+arrows to expand selection, 1-9, space mode toggle, delete/backspace).
 
 ## Quick Start
 
@@ -70,9 +78,9 @@ uvicorn app.main:app --reload --host 127.0.0.1 --port 8000
 
 1. Implement SPN import/export parser with round-trip tests.
 2. Implement event model validation and replay-safe event append flow.
-3. Build first playable board loop (digit, candidates, undo/redo, conflict toggle).
-4. Wire frontend and backend via initial API contracts.
-5. Add timeline playback MVP (scrub and step controls).
+3. Wire frontend and backend via initial API contracts beyond ping.
+4. Add timeline playback MVP (scrub and step controls).
+5. Implement parser + replay integration into the live board.
 
 ## Notes
 
