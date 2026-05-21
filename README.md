@@ -55,28 +55,28 @@ This repository now includes initial implementation scaffolding plus planning/sp
 
 ### Run from repo root (recommended)
 
-npm run web:dev
-
-Optional:
-- npm run web:build
-- npm run api:run
-
-### Frontend
-
-cd apps/web
+```
 npm install
 npm run dev
+```
 
-### Backend
+This starts both the frontend (http://localhost:5173) and backend (http://localhost:8000) together, with labeled and color-coded log output per service. Stop both with Ctrl+C.
 
+### Individual services
+
+- `npm run web:dev` — frontend only
+- `npm run api:run` — backend only
+- `npm run web:build` — production build
+
+### Backend (manual environment setup)
+
+```
 cd apps/api
-python run.py
-
-Alternative (manual environment setup):
 python -m venv .venv
-.venv\\Scripts\\activate
+.venv\Scripts\activate
 pip install -r requirements.txt
 python -m uvicorn app.main:app --host 127.0.0.1 --port 8000
+```
 
 ## Top Priorities
 

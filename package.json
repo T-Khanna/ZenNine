@@ -3,11 +3,15 @@
   "private": true,
   "version": "0.1.0",
   "scripts": {
+    "dev": "concurrently -n api,web -c magenta,cyan \"npm run api:run\" \"npm run web:dev\"",
     "web:install": "npm --prefix apps/web install",
     "web:dev": "npm --prefix apps/web run dev",
     "web:build": "npm --prefix apps/web run build",
     "web:preview": "npm --prefix apps/web run preview",
     "api:run": "python apps/api/run.py",
     "api:check": "python -m py_compile apps/api/app/main.py"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.0"
   }
 }

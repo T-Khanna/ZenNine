@@ -26,8 +26,12 @@ def ensure_venv() -> None:
 if __name__ == "__main__":
     ensure_venv()
     os.chdir(HERE)
-    # Replace this process with uvicorn — no subprocess layer, logs go straight to the terminal.
-    os.execv(
-        str(PYTHON),
-        [str(PYTHON), "-m", "uvicorn", "app.main:app", "--host", "127.0.0.1", "--port", "8000"],
-    )
+    cmd = [str(PYTHON), "-m", "uvicorn", "app.main:app", "--host", "127.0.0.1", "--port", "8000"]
+    if sys.platform == "win32":
+        # os.execv on Windows spawns a new PID and exits this process, so the parent
+        # (concurrently) loses its handle and cannot guarantee a clean kill on shutdown.
+        # subprocess.run keeps this wrapper alive, giving concurrently a stable PID to kill.
+        subprocess.run(cmd)
+    else:
+        # On Unix, execv truly replaces this process (same PID) — no wrapper overhead.
+        os.execv(str(PYTHON), cmd)
