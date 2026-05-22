@@ -165,3 +165,22 @@ Purpose: capture architecture and product decisions with context, alternatives, 
   - Session ids are ephemeral and not currently user-addressable.
 - Follow-ups:
   - Add optional session picker/history view if cross-run inspection becomes a requirement.
+
+### DL-0010: Global Keyboard Listener Is Mount-Once With Handlers Ref
+- Date: 2026-05-22
+- Status: Accepted
+- Owners: ZenNine Web
+- Context: Holding Shift while pressing a digit was intended to write a candidate instead of a digit, but the action consistently dispatched `set_digit`. Diagnostics showed `event.shiftKey === false` on the digit `keydown` even though the same OS/keyboard pair produced `shiftKey === true` on a third-party key tester page. Tracing revealed the App's window `keydown`/`keyup`/`blur` effect was tearing down and re-attaching its listeners on virtually every render (every cursor change, anchor change, callback identity change). Between the Shift `keydown` and the next digit `keydown`, the listener set was removed and re-added several times, and the browser delivered a synthetic Shift `keyup` in that gap. A contributing factor was an `event.preventDefault()` call on the bare Shift `keydown`, which had no useful effect and is a known way to confuse the browser's modifier tracking.
+- Decision: Attach the global `keydown`/`keyup`/`blur` listeners exactly once on mount (empty deps). Store the latest closures (`handleDigitInput`, `clearSelectedCell`, `keyboardAnchorCell`, `redo`, `undo`) in a `keyboardHandlersRef` that is updated every render, and have the listeners read through that ref. Do not call `preventDefault` on bare Shift keydown. Continue tracking pressed key codes in a ref so Shift state can be derived from any of `event.getModifierState('Shift')`, the pressed-keys set, or the held-state ref.
+- Alternatives Considered:
+  - Keep re-attaching on every dep change and rely on stable callback identities throughout the component (would require lifting much of the component state into refs or memoizing aggressively; brittle and easy to regress).
+  - Toggle candidate mode via a separate key or UI button instead of Shift (rejected: user explicitly wanted hold-Shift semantics).
+  - Latch shift state on first keydown and clear only on explicit shift-up after a delay (papered over the real bug and produced unpredictable UX).
+  - Use the WebHID API to read physical keyboard state (out of scope; requires explicit device permission and HID-compliant keyboards).
+- Consequences:
+  - Shift+digit reliably writes candidates across platforms.
+  - No more per-render listener churn for global shortcuts, reducing wasted work and eliminating the timing window that produced the synthetic keyup.
+  - Future global keyboard logic must read mutable state through `keyboardHandlersRef` (and similar refs) instead of relying on closure capture.
+- Follow-ups:
+  - If new global shortcuts need component state, extend `keyboardHandlersRef` rather than re-introducing effect deps.
+  - Add an integration test that simulates `Shift` keydown → digit keydown → Shift keyup and asserts a `toggle_candidate` event is appended.
