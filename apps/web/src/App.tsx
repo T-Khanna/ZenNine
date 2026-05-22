@@ -167,6 +167,28 @@ function getCellIndexFromPointerTarget(target: EventTarget | null): number | nul
   return parsed
 }
 
+function getDigitFromKeyboardEvent(event: KeyboardEvent): number | null {
+  if (event.code.startsWith('Digit')) {
+    const digit = Number(event.code.slice(5))
+    if (digit >= 1 && digit <= 9) return digit
+  }
+
+  if (event.code.startsWith('Numpad')) {
+    const digit = Number(event.code.slice(6))
+    if (digit >= 1 && digit <= 9) return digit
+  }
+
+  if (!event.shiftKey && event.key >= '1' && event.key <= '9') {
+    return Number(event.key)
+  }
+
+  return null
+}
+
+function isShiftKey(event: KeyboardEvent): boolean {
+  return event.code === 'ShiftLeft' || event.code === 'ShiftRight'
+}
+
 function createClientSessionId(): string {
   return `local-web-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`
 }
@@ -186,8 +208,18 @@ function App() {
   const [puzzleSource, setPuzzleSource] = useState('Loading default SPN...')
   const [eventSyncStatus, setEventSyncStatus] = useState<ApiStatus>('idle')
   const [eventSyncMessage, setEventSyncMessage] = useState('No events synced yet')
+  const [isShiftHeld, setIsShiftHeld] = useState(false)
 
   const isPointerActiveRef = useRef(false)
+  const isShiftHeldRef = useRef(false)
+  const pressedKeysRef = useRef<Set<string>>(new Set())
+  const keyboardHandlersRef = useRef({
+    handleDigitInput: (_digit: number, _useCandidateMode?: boolean) => {},
+    clearSelectedCell: () => {},
+    keyboardAnchorCell: null as number | null,
+    redo: () => {},
+    undo: () => {},
+  })
 
   useEffect(() => {
     let cancelled = false
@@ -283,28 +315,19 @@ function App() {
     return selectedCell === null ? [] : [selectedCell]
   }, [selectedCell, selectedCells])
 
-  const collapseSelectionToActiveCell = useCallback(() => {
-    setKeyboardAnchorCell(selectedCell)
-    setSelectedCells((previous) => {
-      if (selectedCell === null) return previous.size === 0 ? previous : new Set<number>()
-      if (previous.size === 1 && previous.has(selectedCell)) return previous
-      return new Set([selectedCell])
-    })
-  }, [selectedCell])
-
-  const handleDigitInput = useCallback((digit: number) => {
+  const handleDigitInput = useCallback((digit: number, useCandidateMode = false) => {
     const targets = getSelectionTargets()
     if (targets.length === 0) return
 
-    if (inputMode === 'candidate') {
+    const shouldUseCandidateMode = inputMode === 'candidate' || useCandidateMode || isShiftHeldRef.current
+
+    if (shouldUseCandidateMode) {
       appendEvent({ type: 'toggle_candidate', targetCells: targets, digit })
-      collapseSelectionToActiveCell()
       return
     }
 
     appendEvent({ type: 'set_digit', targetCells: targets, digit })
-    collapseSelectionToActiveCell()
-  }, [appendEvent, collapseSelectionToActiveCell, getSelectionTargets, inputMode])
+  }, [appendEvent, getSelectionTargets, inputMode])
 
   const clearSelectedCell = useCallback(() => {
     const targets = getSelectionTargets()
@@ -317,13 +340,11 @@ function App() {
       if (target.digit === null && target.candidates.size === 0) return
 
       appendEvent({ type: 'clear_cell', targetCells: targets })
-      collapseSelectionToActiveCell()
       return
     }
 
     appendEvent({ type: 'clear_cell', targetCells: targets })
-    collapseSelectionToActiveCell()
-  }, [appendEvent, board, collapseSelectionToActiveCell, getSelectionTargets])
+  }, [appendEvent, board, getSelectionTargets])
 
   const undo = useCallback(() => {
     if (cursor === 0) return
@@ -335,9 +356,34 @@ function App() {
     setCursor((value) => value + 1)
   }, [cursor, events.length])
 
+  // Keep the latest handler closures available to the mount-once keyboard
+  // listener without re-attaching window listeners on every render. Re-attaching
+  // tore down/added Shift listeners between Shift keydown and the next digit
+  // keydown, which (on this platform) caused the browser to deliver a synthetic
+  // Shift keyup before the digit event. Stable listeners avoid that.
+  keyboardHandlersRef.current = {
+    handleDigitInput,
+    clearSelectedCell,
+    keyboardAnchorCell,
+    redo,
+    undo,
+  }
+
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
       if (event.defaultPrevented) return
+
+      pressedKeysRef.current.add(event.code)
+
+      if (isShiftKey(event)) {
+        if (event.repeat) return
+        // Intentionally no preventDefault: preventing default on a bare Shift
+        // keydown is unnecessary and was observed to confuse the browser's
+        // modifier tracking on this platform.
+        isShiftHeldRef.current = true
+        setIsShiftHeld(true)
+        return
+      }
 
       const target = event.target
       if (
@@ -347,9 +393,15 @@ function App() {
         return
       }
 
-      if (event.key >= '1' && event.key <= '9') {
+      const digit = getDigitFromKeyboardEvent(event)
+      if (digit !== null) {
         event.preventDefault()
-        handleDigitInput(Number(event.key))
+        const shiftKeyPressed =
+          pressedKeysRef.current.has('ShiftLeft') || pressedKeysRef.current.has('ShiftRight')
+        const shiftComboActive =
+          event.getModifierState('Shift') || shiftKeyPressed || isShiftHeldRef.current
+
+        keyboardHandlersRef.current.handleDigitInput(digit, shiftComboActive)
         return
       }
 
@@ -362,7 +414,7 @@ function App() {
 
       if (event.key === 'Backspace' || event.key === 'Delete' || event.key === '0') {
         event.preventDefault()
-        clearSelectedCell()
+        keyboardHandlersRef.current.clearSelectedCell()
         return
       }
 
@@ -372,7 +424,7 @@ function App() {
           const next = moveSelection(value, -1, 0)
 
           if (event.shiftKey) {
-            const anchor = keyboardAnchorCell ?? value ?? next
+            const anchor = keyboardHandlersRef.current.keyboardAnchorCell ?? value ?? next
             setSelectedCells(getRectSelection(anchor, next))
           } else {
             setSelectedCells(new Set([next]))
@@ -390,7 +442,7 @@ function App() {
           const next = moveSelection(value, 1, 0)
 
           if (event.shiftKey) {
-            const anchor = keyboardAnchorCell ?? value ?? next
+            const anchor = keyboardHandlersRef.current.keyboardAnchorCell ?? value ?? next
             setSelectedCells(getRectSelection(anchor, next))
           } else {
             setSelectedCells(new Set([next]))
@@ -408,7 +460,7 @@ function App() {
           const next = moveSelection(value, 0, -1)
 
           if (event.shiftKey) {
-            const anchor = keyboardAnchorCell ?? value ?? next
+            const anchor = keyboardHandlersRef.current.keyboardAnchorCell ?? value ?? next
             setSelectedCells(getRectSelection(anchor, next))
           } else {
             setSelectedCells(new Set([next]))
@@ -426,7 +478,7 @@ function App() {
           const next = moveSelection(value, 0, 1)
 
           if (event.shiftKey) {
-            const anchor = keyboardAnchorCell ?? value ?? next
+            const anchor = keyboardHandlersRef.current.keyboardAnchorCell ?? value ?? next
             setSelectedCells(getRectSelection(anchor, next))
           } else {
             setSelectedCells(new Set([next]))
@@ -441,22 +493,43 @@ function App() {
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'z') {
         event.preventDefault()
         if (event.shiftKey) {
-          redo()
+          keyboardHandlersRef.current.redo()
         } else {
-          undo()
+          keyboardHandlersRef.current.undo()
         }
         return
       }
 
       if ((event.ctrlKey || event.metaKey) && event.key.toLowerCase() === 'y') {
         event.preventDefault()
-        redo()
+        keyboardHandlersRef.current.redo()
       }
     }
 
+    const onKeyUp = (event: KeyboardEvent) => {
+      pressedKeysRef.current.delete(event.code)
+
+      if (isShiftKey(event)) {
+        isShiftHeldRef.current = false
+        setIsShiftHeld(false)
+      }
+    }
+
+    const onWindowBlur = () => {
+      pressedKeysRef.current.clear()
+      isShiftHeldRef.current = false
+      setIsShiftHeld(false)
+    }
+
     window.addEventListener('keydown', onKeyDown)
-    return () => window.removeEventListener('keydown', onKeyDown)
-  }, [clearSelectedCell, handleDigitInput, keyboardAnchorCell, redo, undo])
+    window.addEventListener('keyup', onKeyUp)
+    window.addEventListener('blur', onWindowBlur)
+    return () => {
+      window.removeEventListener('keydown', onKeyDown)
+      window.removeEventListener('keyup', onKeyUp)
+      window.removeEventListener('blur', onWindowBlur)
+    }
+  }, [])
 
   useEffect(() => {
     const stopInteraction = () => {
@@ -469,6 +542,7 @@ function App() {
 
   const canUndo = cursor > 0
   const canRedo = cursor < events.length
+  const effectiveInputMode = isShiftHeld ? 'candidate' : inputMode
 
   return (
     <div className="app-shell">
@@ -486,14 +560,14 @@ function App() {
             <div className="mode-group" role="group" aria-label="Input mode">
               <button
                 type="button"
-                className={`mode-pill ${inputMode === 'digit' ? 'active' : ''}`}
+                className={`mode-pill ${effectiveInputMode === 'digit' ? 'active' : ''}`}
                 onClick={() => setInputMode('digit')}
               >
                 Digit
               </button>
               <button
                 type="button"
-                className={`mode-pill ${inputMode === 'candidate' ? 'active' : ''}`}
+                className={`mode-pill ${effectiveInputMode === 'candidate' ? 'active' : ''}`}
                 onClick={() => setInputMode('candidate')}
               >
                 Candidate
@@ -657,6 +731,7 @@ function App() {
               </li>
               <li>Arrow keys move selection</li>
               <li>Space toggles digit/candidate mode</li>
+              <li>Hold Shift for temporary candidate entry while selecting</li>
               <li>Drag to select multiple cells</li>
               <li>1-9 applies value/candidate to selected cells</li>
               <li>Backspace/Delete clears cell</li>
